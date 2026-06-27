@@ -1,42 +1,41 @@
 package services
 
 import (
-	"fmt"
 	"github.com/ashisharyan/ghostwriter-prompt-engine/models"
 )
 
 type PromptService interface {
-	GeneratePersonaSummary(profile *models.CreatorProfile) string
-	GeneratePrompt(profile *models.CreatorProfile, topic string) (string, error)
+	GeneratePersonaSummary(profile *models.CreatorProfile, persona *models.PersonaProfile) string
+	GeneratePrompt(profile *models.CreatorProfile, persona *models.PersonaProfile, topic string) (PromptContext, error)
 }
 
 type DefaultPromptService struct {
-	PromptRepo PromptRepository
+	PromptRepo     PromptRepository
+	PersonaService PersonaService
 }
 
-func NewDefaultPromptService(promptRepo PromptRepository) PromptService {
-	return &DefaultPromptService{PromptRepo: promptRepo}
+func NewDefaultPromptService(promptRepo PromptRepository, personaService PersonaService) PromptService {
+	return &DefaultPromptService{PromptRepo: promptRepo, PersonaService: personaService}
 }
 
-func (s *DefaultPromptService) GeneratePersonaSummary(profile *models.CreatorProfile) string {
-	return fmt.Sprintf("%s is a %s creator from %s, making %s content in %s, known for %s. Tone: %s. Style: %s.",
-		profile.Name, profile.Genre, profile.Region, profile.ContentType, profile.Language, profile.USP, profile.Tone, profile.Style)
+func (s *DefaultPromptService) GeneratePersonaSummary(profile *models.CreatorProfile, persona *models.PersonaProfile) string {
+	return s.PersonaService.BuildPersonaSummary(profile, persona)
 }
 
-func (s *DefaultPromptService) GeneratePrompt(profile *models.CreatorProfile, topic string) (string, error) {
-	persona := s.GeneratePersonaSummary(profile)
-	prompt := fmt.Sprintf("You are %s\nTopic: %s\nWrite a script as if you are this creator, in their tone and style.", persona, topic)
+func (s *DefaultPromptService) GeneratePrompt(profile *models.CreatorProfile, persona *models.PersonaProfile, topic string) (PromptContext, error) {
+	ctx := s.PersonaService.BuildPromptContext(profile, persona, topic, "base")
 	if s.PromptRepo != nil {
 		dbPrompt := &models.Prompt{
-			CreatorID:  fmt.Sprintf("%v", profile.ID),
-			Topic:      topic,
-			Variant:    "base",
-			PromptText: prompt,
+			CreatorID:    profile.ID,
+			Topic:        topic,
+			Variant:      "base",
+			PromptText:   ctx.FullPromptText,
+			SystemPrompt: ctx.SystemPrompt,
+			UserPrompt:   ctx.UserPrompt,
 		}
 		if err := s.PromptRepo.SavePrompt(dbPrompt); err != nil {
-			return prompt, err
+			return ctx, err
 		}
 	}
-	return prompt, nil
+	return ctx, nil
 }
-

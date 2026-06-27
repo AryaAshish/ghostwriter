@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ghostwriter — Persona Lab</title>
+  <link rel="stylesheet" href="/app/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Ghostwriter Persona Lab</h1>
+      <p>Four paths to your voice fingerprint — paste scripts, guided writing, Instagram import, or skip and calibrate later.</p>
+      <span class="badge">Manual mode · OpenAI key not required</span>
+    </header>
+
+    <div class="steps">
+      <span class="step-pill active" id="pill-1">1. Profile &amp; path</span>
+      <span class="step-pill" id="pill-2">2. Voice capture</span>
+      <span class="step-pill" id="pill-3">3. Fingerprint</span>
+      <span class="step-pill" id="pill-4">4. Prompt &amp; calibrate</span>
+    </div>
+
+    <section id="step-1">
+      <div class="card">
+        <h2>Creator profile</h2>
+        <div class="grid">
+          <div><label for="name">Name *</label><input id="name" value="Amit" /></div>
+          <div><label for="genre">Genre *</label><input id="genre" value="Comedy" /></div>
+          <div><label for="language">Language *</label><input id="language" value="Hindi" /></div>
+          <div><label for="platform">Platform</label><input id="platform" value="YouTube" /></div>
+          <div><label for="region">Region</label><input id="region" value="Delhi" /></div>
+          <div><label for="content_type">Content type</label><input id="content_type" value="Shorts" /></div>
+        </div>
+        <div style="margin-top:1rem"><label for="bio">Bio</label><textarea id="bio">Standup comic making quick relatable Shorts.</textarea></div>
+      </div>
+
+      <div class="card">
+        <h2>How do you want to capture your voice?</h2>
+        <div class="path-grid">
+          <button type="button" class="path-card active" data-path="paste_scripts">
+            <strong>I have past scripts</strong>
+            <span>Paste 2–3 scripts or captions</span>
+          </button>
+          <button type="button" class="path-card" data-path="guided_write">
+            <strong>Help me write samples</strong>
+            <span>3 quick guided exercises</span>
+          </button>
+          <button type="button" class="path-card" data-path="import_instagram">
+            <strong>Import from Instagram</strong>
+            <span>Connect account · import reel captions</span>
+          </button>
+          <button type="button" class="path-card" data-path="skip_calibrate">
+            <strong>Skip for now</strong>
+            <span>Calibrate after your first ChatGPT draft</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="actions"><button type="button" id="btn-to-capture">Continue</button></div>
+      <div id="step-1-error" class="error hidden"></div>
+    </section>
+
+    <section id="step-2" class="hidden">
+      <div class="card">
+        <h2>Style questions</h2>
+        <div id="questions-container">Loading…</div>
+      </div>
+      <div class="card" id="paste-panel">
+        <h2>Paste your scripts</h2>
+        <p class="hint">Separate samples with a line containing only ---</p>
+        <textarea id="writing_samples" placeholder="Okay so suno yaar…&#10;---&#10;Real talk — agar tum bhi ye mistake karte ho…"></textarea>
+      </div>
+      <div class="card hidden" id="guided-panel">
+        <h2>Guided voice exercises</h2>
+        <p class="hint">Write like you're talking to camera — at least 25 words in each box (about 3–4 sentences).</p>
+        <div id="guided-container"></div>
+      </div>
+      <div class="card hidden" id="instagram-panel">
+        <h2>Instagram reels</h2>
+        <p class="hint" id="instagram-status">Connect your Instagram Business or Creator account to import recent reels.</p>
+        <div class="actions">
+          <button type="button" id="btn-instagram-connect">Connect Instagram</button>
+          <button type="button" class="secondary hidden" id="btn-instagram-refresh">Refresh reels</button>
+        </div>
+        <label class="toggle-inline"><input type="checkbox" id="instagram-transcribe" /> Transcribe short captions (needs OPENAI_API_KEY)</label>
+        <div id="instagram-profile" class="hint hidden"></div>
+        <div id="instagram-reels-table"></div>
+        <button type="button" class="secondary hidden" id="btn-instagram-prepare">Prepare selected reels</button>
+        <details class="manual-import">
+          <summary>Or paste reel captions manually (no connect)</summary>
+          <p class="hint">One caption per block, separated by a line with only ---</p>
+          <textarea id="instagram_manual_captions" rows="6" placeholder="Caption from reel 1…&#10;---&#10;Caption from reel 2…"></textarea>
+        </details>
+      </div>
+      <div class="card hidden" id="skip-panel">
+        <h2>Skip voice samples</h2>
+        <p class="hint">We'll build a declared voice from your answers. Paste an edited script after your first ChatGPT run to calibrate.</p>
+      </div>
+      <div class="actions">
+        <button type="button" class="secondary" id="btn-back-1">Back</button>
+        <button type="button" id="btn-submit">Build persona</button>
+      </div>
+      <div id="step-2-error" class="error hidden"></div>
+    </section>
+
+    <section id="step-3" class="hidden">
+      <div class="card">
+        <h2>Voice fingerprint review</h2>
+        <p class="hint">Creator ID: <strong id="creator-id">—</strong></p>
+        <div class="meta-row">
+          <span class="meta-pill" id="voice-mode">—</span>
+          <span class="meta-pill" id="voice-confidence">—</span>
+          <span class="meta-pill" id="voice-path">—</span>
+        </div>
+        <div id="fingerprint-stats" class="hint"></div>
+        <h3>Voice scores</h3>
+        <div id="scores-container" class="score-grid"></div>
+        <h3>Lexical profile</h3>
+        <div id="lexical-container"></div>
+      </div>
+      <div class="actions">
+        <button type="button" class="secondary" id="btn-back-2">Back</button>
+        <button type="button" id="btn-to-prompt">Continue to prompt</button>
+      </div>
+    </section>
+
+    <section id="step-4" class="hidden">
+      <div class="card">
+        <h2>Prompt for ChatGPT</h2>
+        <div class="grid">
+          <div><label for="topic">Video topic</label><input id="topic" value="How to stay consistent as a creator" /></div>
+          <div><label for="variant">Structure</label>
+            <select id="variant">
+              <option value="base">Base</option>
+              <option value="A">A — Balanced</option>
+              <option value="B">B — Punchy</option>
+              <option value="C">C — Story</option>
+            </select>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" id="btn-generate">Build prompt</button>
+          <button type="button" class="secondary" id="btn-copy-combined">Copy for ChatGPT</button>
+        </div>
+        <div id="copy-msg" class="success-msg hidden">Copied!</div>
+        <div id="step-4-error" class="error hidden"></div>
+        <pre id="prompt-combined" class="prompt-box">Generate a prompt to see it here.</pre>
+        <details><summary>System / user split</summary>
+          <pre id="prompt-system" class="prompt-box"></pre>
+          <pre id="prompt-user" class="prompt-box"></pre>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>Calibrate your voice</h2>
+        <p class="hint">Paste ChatGPT output and your edited version to teach the engine your voice.</p>
+        <label for="generated_script">ChatGPT output (optional)</label>
+        <textarea id="generated_script" rows="4"></textarea>
+        <label for="edited_script">Your edited script</label>
+        <textarea id="edited_script" rows="4"></textarea>
+        <label for="feedback_notes">Notes</label>
+        <textarea id="feedback_notes" rows="2" placeholder="Too formal, not enough yaar…"></textarea>
+        <div class="toggle-row" id="toggle-row">
+          <label><input type="checkbox" value="too_formal" /> Too formal</label>
+          <label><input type="checkbox" value="not_enough_hindi" /> Not enough Hindi</label>
+          <label><input type="checkbox" value="wrong_words" /> Wrong words</label>
+          <label><input type="checkbox" value="not_enough_energy" /> Not enough energy</label>
+        </div>
+        <label for="feedback_rating">Sounds like me?</label>
+        <select id="feedback_rating">
+          <option value="sounds_like_me">Yes</option>
+          <option value="close">Close</option>
+          <option value="not_quite">Not quite</option>
+          <option value="no">No</option>
+        </select>
+        <div class="actions"><button type="button" id="btn-feedback">Submit feedback</button></div>
+        <div id="feedback-result" class="success-msg hidden"></div>
+      </div>
+      <div class="actions"><button type="button" class="secondary" id="btn-back-3">Back to fingerprint</button></div>
+    </section>
+  </div>
+  <script src="/app/app.js"></script>
+</body>
+</html>

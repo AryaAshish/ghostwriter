@@ -7,7 +7,7 @@ import (
 
 type PromptRepository interface {
 	SavePrompt(prompt *models.Prompt) error
-	GetPromptsByCreatorID(creatorID string) ([]models.Prompt, error)
+	GetPromptsByCreatorID(creatorID uint) ([]models.Prompt, error)
 }
 
 type GormPromptRepository struct {
@@ -22,7 +22,7 @@ func (r *GormPromptRepository) SavePrompt(prompt *models.Prompt) error {
 	return r.DB.Create(prompt).Error
 }
 
-func (r *GormPromptRepository) GetPromptsByCreatorID(creatorID string) ([]models.Prompt, error) {
+func (r *GormPromptRepository) GetPromptsByCreatorID(creatorID uint) ([]models.Prompt, error) {
 	var prompts []models.Prompt
 	err := r.DB.Where("creator_id = ?", creatorID).Order("created_at desc").Find(&prompts).Error
 	return prompts, err

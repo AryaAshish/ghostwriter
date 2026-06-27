@@ -4,7 +4,7 @@ import "time"
 
 type Script struct {
 	ID         uint      `gorm:"primaryKey"`
-	CreatorID  string
+	CreatorID  uint
 	PromptID   uint
 	ScriptText string
 	Source     string    // "GPT-4"
